@@ -4308,7 +4308,7 @@ export const prefix = (url) => {
   if (url && url.startsWith('http')) {
     return url
   } else {
-    url = `http://172.26.10.24:8081${url}`
+    url = `http://172.26.10.71:8081${url}`
     return url
   }
 }

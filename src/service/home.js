@@ -18,4 +18,10 @@ export function staffInfoSave(params) {
 export function workerInfoSave(params) {
   return axios.post('/workerInfo/saveOrUpdate',params);
 }
+export function ossUpload(params) {
+  return axios.post('/sys/oss/upload',params);
+}
+export function deleteFiles(params) {
+  return axios.post('/sys/oss/delete',params);
+}
 

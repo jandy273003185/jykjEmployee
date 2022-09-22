@@ -38,6 +38,11 @@
               @confirm="nationConfirm"
             />
           </van-popup>
+          <van-field required  name="uploader" label="个人照片">
+            <template #input>
+              <van-uploader v-model="fileList" @delete="deleteHeadUrl" :after-read="afterRead"  multiple  :max-count="1"/>
+            </template>
+          </van-field>
           <van-field required label="政治面貌" v-model="employeeForm.politicalOutlook" is-link readonly @click="showPoliticsStatus = true" placeholder="政治面貌"  :rules="[{ required: true, message: '请填写政治面貌' }]"/>
           <van-popup v-model:show="showPoliticsStatus" round position="bottom">
             <van-picker
@@ -71,12 +76,16 @@
             <van-area :area-list="areaList" @confirm="areaConfirm" @cancel="showArea = false"/>
           </van-popup>
           <van-field required label="手机号" v-model="employeeForm.mobile" placeholder="手机号" :rules="telRules" name="mobile"></van-field>
-          <van-field required v-model="employeeForm.idCard" name="身份证号码" label="身份证号码" placeholder="身份证号码" :rules="[{ required: true, message: '请填写身份证号码' }]"/>
+          <van-field required v-model="employeeForm.idCard" name="身份证号码" label="身份证号码" placeholder="身份证号码" :rules="idCardRules"/>
           <van-field required v-model="employeeForm.birthDate" name="出生日期" label="出生日期" placeholder="出生日期" :rules="[{ required: true, message: '请填写出生日期' }]" @click="show2 = true"/>
           <van-popup v-model:show="show2" position="bottom">
              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm2" @cancel="show2=false"/>
           </van-popup>
-          <van-field required v-model="employeeForm.idCardAddr" name="身份证地址" label="身份证地址" placeholder="身份证地址" :rules="[{ required: true, message: '请填写身份证地址' }]"/>
+          <van-field required v-model="_idCardAddr" is-link readonly name="area" label="身份证地址" placeholder="身份证地址" :rules="[{ required: true, message: '请填写身份证地址' }]" @click="showArea2 = true"/>
+          <van-popup v-model:show="showArea2" position="bottom">
+            <van-area :area-list="areaList" @confirm="areaConfirm2" @cancel="showArea2 = false"/>
+          </van-popup>
+          <van-field v-model="employeeForm.idCardAddr" />
           <van-field required v-model="employeeForm.issuingAuthority" name="身份证签发机关" label="身份证签发机关" label-width="98" placeholder="身份证签发机关" :rules="[{ required: true, message: '请填写身份证签发机关' }]"/>
           <van-field required v-model="employeeForm.idCardStartDate" name="身份证有效开始时间" label-width="126" label="身份证有效开始时间" placeholder="身份证有效开始时间" :rules="[{ required: true, message: '请填写身份证有效开始时间' }]" @click="show = true"/>
           <van-popup v-model:show="show" position="bottom">
@@ -96,8 +105,16 @@
             />
           </van-popup>
           <van-field required label="紧急联系人电话" label-width="98" v-model="employeeForm.emergencyMobile" placeholder="紧急联系人电话" :rules="telRules" name="mobile"></van-field>    
-        <van-field required v-model="employeeForm.address" name="现居住地址" label="现居住地址" placeholder="现居住地址" :rules="[{ required: true, message: '请填写现居住地址' }]"/>  
-        <van-field required v-model="employeeForm.postAddress" name="邮寄地址" label="邮寄地址" placeholder="邮寄地址" :rules="[{ required: true, message: '请填写邮寄地址' }]"/>  
+       <van-field required v-model="_address" is-link readonly name="area" label="现居住地址" placeholder="现居住地址" :rules="[{ required: true, message: '请填写现居住地址' }]" @click="showArea3 = true"/>
+          <van-popup v-model:show="showArea3" position="bottom">
+            <van-area :area-list="areaList" @confirm="areaConfirm3" @cancel="showArea3 = false"/>
+          </van-popup>
+        <van-field v-model="employeeForm.address"/>  
+        <van-field required v-model="_postAddress" is-link readonly name="area" label="邮寄地址" placeholder="邮寄地址" :rules="[{ required: true, message: '请填写邮寄地址' }]" @click="showArea4 = true"/>
+          <van-popup v-model:show="showArea4" position="bottom">
+            <van-area :area-list="areaList" @confirm="areaConfirm4" @cancel="showArea4 = false"/>
+          </van-popup>
+        <van-field v-model="employeeForm.postAddress" style="margin-bottom:8px"/>  
         <div class="content-title">家庭关系</div>
         <div v-if="familyVisible" :model="familyForm" ref="familyRef">
           <template v-for="(item, index) in familyForm.familyRelations" :key="index">
@@ -295,7 +312,7 @@
 <script>
 import { reactive, onMounted, toRefs, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { workerInfoSave, } from '@/service/home'
+import { workerInfoSave,ossUpload,deleteFiles} from '@/service/home'
 import { getLocal } from '@/common/js/utils'
 import { Toast } from 'vant'
 import { useStore  } from 'vuex'
@@ -317,6 +334,18 @@ export default {
       loading: true,
       username:'',
       password:'',
+      idCardRules:[{
+            required: true,
+            message: '身份证号不能为空',
+            trigger: 'onBlur'
+        }, {
+            validator: value => {
+                return /^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/
+                    .test(value)
+            },
+            message: '请输入正确格式的身份证号码',
+            trigger: 'onBlur'
+      }],
       telRules:[{
             required: true,
             message: '手机号不能为空',
@@ -337,6 +366,12 @@ export default {
       show5:false,
       show6:false,
       showArea:false,
+      showArea2:false,
+      _idCardAddr:'',
+      showArea3:false,
+      _address:'',
+      showArea4:false,
+      _postAddress:'',
       showNativePlace:false,
       showNation:false,
       nationList : [
@@ -624,7 +659,7 @@ export default {
       showMarriage:false,
       marriageList:['未婚','已婚','离婚','丧偶'],
       showHouseholdType:false,
-      householdTypeList:['农业户口','非农业户口'],
+      householdTypeList:['城镇户口','农业户口','深圳户口','非农业户口','其他'],
       showEmergencyContact2:false,
       emergencyContact2List:['父子','母子','父女','母女','夫妻','之子','之女','兄弟姐妹','祖孙','朋友','同事'],
       emergencyContact4List:['父亲','母亲','夫妻','儿子','女儿','兄弟姐妹',],
@@ -688,7 +723,10 @@ export default {
         relativePerson:'',
         address:'',
         postAddress:'',
-      }
+        headUrl:'',
+        
+      },
+      fileList:[],
     })
     const formatDate = (date) => `${date.getFullYear()}-${(date.getMonth() + 1)<10?'0'+(date.getMonth() + 1):(date.getMonth() + 1)}-${date.getDate()<10?'0'+date.getDate():date.getDate()}`;
     const onConfirm = (value) => {
@@ -718,6 +756,27 @@ export default {
     const areaConfirm = (areaValues) => {
       state.showArea = false;
       state.employeeForm.residenceAddr = areaValues
+        .filter((item) => !!item)
+        .map((item) => item.name)
+        .join('/');
+    };
+    const areaConfirm2 = (areaValues) => {
+      state.showArea2 = false;
+      state._idCardAddr = areaValues
+        .filter((item) => !!item)
+        .map((item) => item.name)
+        .join('/');
+    };
+    const areaConfirm3 = (areaValues) => {
+      state.showArea3 = false;
+      state._address = areaValues
+        .filter((item) => !!item)
+        .map((item) => item.name)
+        .join('/');
+    };
+    const areaConfirm4 = (areaValues) => {
+      state.showArea4 = false;
+      state._postAddress = areaValues
         .filter((item) => !!item)
         .map((item) => item.name)
         .join('/');
@@ -818,6 +877,28 @@ export default {
       }
       // console.log('submit', values);
     };
+    const afterRead = (file) => {
+      // file.status = "uploading";
+      // file.message = "上传中...";
+      let formData = new FormData();
+      formData.append("file", file.file);
+      ossUpload(formData).then((res) => {
+        if(res.code == 0){
+          state.employeeForm.headUrl = res.data.src;
+        }else{
+          Toast.fail('服务端异常,请稍后再试！')
+        }
+      });
+    };
+    const deleteHeadUrl = ()=>{
+      let formData = new FormData();
+      formData.append("fileName", state.employeeForm.headUrl.substr(6,state.employeeForm.headUrl.length));
+      deleteFiles(formData).then((res) => {
+        if(res.code !=0){
+          Toast.fail('删除失败,请稍后再试！')
+        }
+      });
+    };
     onMounted(async () => {
       const token = getLocal('token')
       if (token) {
@@ -882,7 +963,11 @@ export default {
       studyStyleConfirm,
       physicalConditionConfirm,
       onSubmit,
-
+      areaConfirm2,
+      areaConfirm3,
+      areaConfirm4,
+      afterRead,
+      deleteHeadUrl,
     }
   },
 }
