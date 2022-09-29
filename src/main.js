@@ -14,7 +14,8 @@ app.config.globalProperties.$filters = {
     if (url && url.startsWith('http')) {
       return url
     } else {
-      url = `http://172.26.10.71:8081${url}`
+      // url = `http://172.26.10.25:8080/api/${url}`
+      url = `http://172.26.253.38:8889/api/${url}`//服务器
       return url
     }
   }

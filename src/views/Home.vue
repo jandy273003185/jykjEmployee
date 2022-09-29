@@ -151,7 +151,7 @@
             <van-field label="与本人关系" v-model="item.relation" is-link readonly @click="item.showEmergencyContact = true" placeholder="与本人关系" />
             <van-popup v-model:show="item.showEmergencyContact" round position="bottom">
               <van-picker
-                :columns="emergencyContact4List"
+                :columns="emergencyContact2List"
                 @cancel="item.showEmergencyContact=false"
                 @confirm="emergencyContact4Confirm($event,index)"
               />
@@ -406,9 +406,21 @@
               </template>
             </van-field>
         </div>
-
-        <van-field v-model="employeeForm.recruiter" name="招聘人姓名" label="招聘人姓名" placeholder="招聘人姓名" />
-        
+        <van-field v-show="false" v-model="employeeForm.recruiterId"/>
+        <van-field required label="记忆科技招聘人姓名" v-model="employeeForm.recruiter" is-link readonly @click="employeeForm.showRecruiter = true" placeholder="招聘人姓名" />
+        <van-popup v-model:show="employeeForm.showRecruiter" round position="bottom">
+          <van-picker
+            :columns="recruiterList"
+            value-key="realName"
+            @cancel="employeeForm.showRecruiter = false"
+            @confirm="recruiterConfirm"
+            
+          />
+        </van-popup> 
+        <van-field required v-model="employeeForm.offerDate" name="收到记忆科技Offer日期" label="收到记忆科技Offer日期" placeholder="收到记忆科技Offer日期" :rules="[{ required: true, message: '请填写收到记忆科技Offer日期' }]" @click="employeeForm.showOfferDate = true"/>
+        <van-popup v-model:show="employeeForm.showOfferDate" position="bottom">
+          <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm16($event,index)" @cancel="employeeForm.showOfferDate = false"/>
+        </van-popup>
         <!-- <van-field required v-model="username" name="应聘岗位" label="应聘岗位" placeholder="应聘岗位" :rules="[{ required: true, message: '请填写应聘岗位' }]"/> -->
         <!-- <van-field required v-model="username" name="籍贯" label="籍贯" placeholder="省+市，例如 广东东莞" :rules="[{ required: true, message: '请填写籍贯' }]"/> -->
         <!-- <van-field required  name="uploader" label="个人照片">
@@ -466,17 +478,17 @@
 <script>
 import { reactive, onMounted, toRefs, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { staffInfoSave, ossUpload,deleteFiles} from '@/service/home'
-import { getLocal } from '@/common/js/utils'
+import { staffInfoSave, ossUpload,deleteFiles,getRecruiters,} from '@/service/home'
+// import { getLocal } from '@/common/js/utils'
 import { Toast } from 'vant'
-import { useStore  } from 'vuex'
+// import { useStore  } from 'vuex'
 import { areaList } from '@vant/area-data'
 export default {
   name: 'home',
   components: {
   },
   setup() {
-    const store = useStore()
+    // const store = useStore()
     const router = useRouter()
     const state = reactive({
       swiperList: [], // 轮播图列表
@@ -533,298 +545,297 @@ export default {
       nationList : [
         {
           id: 1,
-          text: "汉族",
+          text: "HA/汉族",
           value: 1,
         },
         {
           id: 2,
-          text: "壮族",
+          text: "AC/阿昌族",
           value: 2,
         },
         {
           id: 3,
-          text: "满族",
+          text: "BA/白族",
           value: 3,
         },
         {
           id: 4,
-          text: "回族",
+          text: "BL/布朗族",
           value: 4,
         },
         {
           id: 5,
-          text: "苗族",
+          text: "BN/保安族",
           value: 5,
         },
         {
           id: 6,
-          text: "维吾尔族",
+          text: "BY/布依族",
           value: 6,
         },
         {
           id: 7,
-          text: "土家族",
+          text: "CS/朝鲜族",
           value: 7,
         },
         {
           id: 8,
-          text: "彝族",
+          text: "DA/傣族",
           value: 8,
         },
         {
           id: 9,
-          text: "蒙古族",
+          text: "DE/德族",
           value: 9,
         },
         {
           id: 10,
-          text: "藏族",
+          text: "DO/侗族",
           value: 10,
         },
         {
           id: 11,
-          text: "布依族",
+          text: "DR/独龙族",
           value: 11,
         },
         {
           id: 12,
-          text: "侗族",
+          text: "DU/达翰尔族",
           value: 12,
         },
         {
           id: 13,
-          text: "瑶族",
+          text: "DX/东乡族",
           value: 13,
         },
         {
           id: 14,
-          text: "朝鲜族",
+          text: "EW/鄂温克族",
           value: 14,
         },
         {
           id: 15,
-          text: "白族",
+          text: "GI/京族",
           value: 15,
         },
         {
           id: 16,
-          text: "哈尼族",
+          text: "GL/仡佬族",
           value: 16,
         },
         {
           id: 17,
-          text: "哈萨克族",
+          text: "GS/高山族",
           value: 17,
         },
         {
           id: 18,
-          text: "黎族",
+          text: "HU/回族",
           value: 18,
         },
         {
           id: 19,
-          text: "傣族",
+          text: "HZ/赫哲族",
           value: 19,
         },
         {
           id: 20,
-          text: "畲族",
+          text: "JN/基诺族",
           value: 20,
         },
         {
           id: 21,
-          text: "傈僳族",
+          text: "JP/景颇族",
           value: 21,
         },
         {
           id: 22,
-          text: "仡佬族",
+          text: "KG/柯尔克孜族",
           value: 22,
         },
         {
           id: 23,
-          text: "东乡族",
+          text: "KZ/哈萨克族",
           value: 23,
         },
         {
           id: 24,
-          text: "高山族",
+          text: "LB/珞巴族",
           value: 24,
         },
         {
           id: 25,
-          text: "拉祜族",
+          text: "LH/拉祜族",
           value: 25,
         },
         {
           id: 26,
-          text: "水族",
+          text: "LI/黎族",
           value: 26,
         },
         {
           id: 27,
-          text: "佤族",
+          text: "LS/傈僳族",
           value: 27,
         },
         {
           id: 28,
-          text: "纳西族",
+          text: "MA/满族",
           value: 28,
         },
         {
           id: 29,
-          text: "羌族",
+          text: "MB/门巴族",
           value: 29,
         },
         {
           id: 30,
-          text: "土族",
+          text: "MG/蒙古族",
           value: 30,
         },
         {
           id: 31,
-          text: "仫佬族",
+          text: "MH/苗族",
           value: 31,
         },
         {
           id: 32,
-          text: "锡伯族",
+          text: "ML/仫佬族",
           value: 32,
         },
         {
           id: 33,
-          text: "柯尔克孜族",
+          text: "MN/毛南族",
           value: 33,
         },
         {
           id: 34,
-          text: "达斡尔族",
+          text: "NU/怒族",
           value: 34,
         },
         {
           id: 35,
-          text: "景颇族",
+          text: "NX/纳西族",
           value: 35,
         },
         {
           id: 36,
-          text: "毛南族",
+          text: "OR/鄂伦春族",
           value: 36,
         },
         {
           id: 37,
-          text: "撒拉族",
+          text: "PM/普米族",
           value: 37,
         },
         {
           id: 38,
-          text: "布朗族",
+          text: "QI/羌族",
           value: 38,
         },
         {
           id: 39,
-          text: "塔吉克族",
+          text: "RS/俄罗斯族",
           value: 39,
         },
         {
           id: 40,
-          text: "阿昌族",
+          text: "SH/畲族",
           value: 40,
         },
         {
           id: 41,
-          text: "普米族",
+          text: "SL/萨拉族",
           value: 41,
         },
         {
           id: 42,
-          text: "鄂温克族",
+          text: "SU/水族",
           value: 42,
         },
         {
           id: 43,
-          text: "怒族",
+          text: "TA/塔吉克族",
           value: 43,
         },
         {
           id: 44,
-          text: "京族",
+          text: "TJ/土家族",
           value: 44,
         },
         {
           id: 45,
-          text: "基诺族",
+          text: "TT/塔塔尔族",
           value: 45,
         },
         {
           id: 46,
-          text: "德昂族",
+          text: "TU/土族",
           value: 46,
         },
         {
           id: 47,
-          text: "保安族",
+          text: "UG/维吾尔族",
           value: 47,
         },
         {
           id: 48,
-          text: "俄罗斯族",
+          text: "UZ/乌孜别克族",
           value: 48,
         },
         {
           id: 49,
-          text: "裕固族",
+          text: "VA/佤族",
           value: 49,
         },
         {
           id: 50,
-          text: "乌孜别克族",
+          text: "XB/锡伯族",
           value: 50,
         },
         {
           id: 51,
-          text: "门巴族",
+          text: "YA/瑶族",
           value: 51,
         },
         {
           id: 52,
-          text: "鄂伦春族",
+          text: "YG/裕固族",
           value: 52,
         },
         {
           id: 53,
-          text: "独龙族",
+          text: "YI/彝族",
           value: 53,
         },
         {
           id: 54,
-          text: "塔塔尔族",
+          text: "ZA/藏族",
           value: 54,
         },
         {
           id: 55,
-          text: "赫哲族",
+          text: "ZH/壮族",
           value: 55,
         },
         {
           id: 56,
-          text: "珞巴族",
+          text: "CQ/穿青族",
           value: 56,
         },
       ],
       showMarriage:false,
       marriageList:['未婚','已婚','离婚','丧偶'],
       showHouseholdType:false,
-      householdTypeList:['城镇户口','农业户口','深圳户口','非农业户口','其他'],
+      householdTypeList:['1/城镇户口','2/农业户口','3/其他','9/深圳户口'],
       showEmergencyContact2:false,
       showEmergencyContact3:false,
-      emergencyContact2List:['父子','母子','父女','母女','夫妻','之子','之女','兄弟姐妹','祖孙','朋友','同事'],
-      emergencyContact4List:['父亲','母亲','夫妻','儿子','女儿','兄弟姐妹',],
+      emergencyContact2List:['10/配偶','11/父亲','12/母亲','13/子女','14/兄弟姐妹','15/朋友','16/同学','99/其他关系'],
       education:'',
       showEducation:false,
-      educationList:['博士','研究生','本科','大专','中专/职高/技校','高中/职高','初中','小学','其他'],
+      educationList:['10/博士研究生','11/硕士研究生','12/大学本科','13/大学专科','14/中专中技','15/高中','16/初中','17/小学'],
       showEducationCertificate:false,
-      educationCertificateList:['博士研究生－国外','博士研究生','博士研究生结业','博士研究生肄业','硕士研究生','硕士研究生－国外MBA','硕士研究生－国内MBA','研究生班','硕士研究生结业','硕士研究生肄业','大学本科','第二学士班','大学结业','大学肄业','大专','大专结业','大专肄业','高职毕业','高职结业','高职肄业','中专','中专结业','中专肄业','技校毕业','技校结业','技校肄业','高中','职业高中毕业','农业高中毕业','高中结业','高中肄业','初中','职业初中毕业','农业初中毕业','初中结业','初中肄业','小学','小学结业','小学肄业','无证书'],
+      educationCertificateList:['10/学士','11/硕士','12/博士及以上','Z1/无'],
       photo:[],
       diploma:[],
       identityCardFront:[],
@@ -834,7 +845,7 @@ export default {
       elseSkill:[],
       dimission:[],
       showPoliticsStatus:false,
-      politicsStatusList:['中共党员','中共预备党员','共青团员','民革党员','民盟盟员','民建会员','民进会员','农工党党员','致公党党员','九三学社社员','台盟盟员','无党派人士','群众',],
+      politicsStatusList:['10/群众','11/中共党员','12/中共预备党员','13/共青团员','99/其他政党'],
       minDate: new Date(1940, 1, 1),
       maxDate: new Date(),
       maxDate2: new Date(2099,12,31),
@@ -852,7 +863,7 @@ export default {
               date: '',
           }]
       },
-      studyStyleList:['统招全日制','自考','成人教育','函授','夜校教育','远程教育'],
+      studyStyleList:['10/统招全日制','11/自考','12/成人教育','13/函授','14/夜校教育','15/远程教育'],
       workVisible:false,
       workForm: {
           workExperience: [{
@@ -885,7 +896,7 @@ export default {
           }]
       },
       healthForm: {showPhysicalCondition:false,},
-      physicalConditionList:['健康', '良好', '抱恙'],
+      physicalConditionList:['10/健康', '11/良好', '12/抱恙'],
       otherForm:{},
       employeeForm:{
         name:'',
@@ -916,9 +927,16 @@ export default {
         address:'',
         postAddress:'',
         headUrl:'',
+        showRecruiter:false,
+        recruiter:'',
+        recruiterId:'',
+        showOfferDate:false,
+        offerDate:'',
         
       },
       fileList:[],
+      recruiterList:[],
+      
     })
     const formatDate = (date) => `${date.getFullYear()}-${(date.getMonth() + 1)<10?'0'+(date.getMonth() + 1):(date.getMonth() + 1)}-${date.getDate()<10?'0'+date.getDate():date.getDate()}`;
     const onConfirm = (value) => {
@@ -987,6 +1005,10 @@ export default {
     const onConfirm15 = (value,index) => {
       state.trainForm.trainingExperience[index].show2 = false;
       state.trainForm.trainingExperience[index].endDate = formatDate(value);
+    }
+    const onConfirm16 = (value) => {
+      state.employeeForm.showOfferDate= false;
+      state.employeeForm.offerDate = formatDate(value);
     }
     const areaConfirm = (areaValues) => {
       state.showArea = false;
@@ -1143,6 +1165,12 @@ export default {
       state.healthForm.health = value;
       state.healthForm.showPhysicalCondition = false;
     };
+
+    const recruiterConfirm = (value) => {
+      state.employeeForm.recruiterId = value.id;
+      state.employeeForm.recruiter = value.realName;
+      state.employeeForm.showRecruiter = false;
+    };
     const onSubmit = async () => {
       state.employeeForm.idCardAddr = state._idCardAddr+state.employeeForm.idCardAddr;
       state.employeeForm.address = state._address+state.employeeForm.address;
@@ -1206,23 +1234,20 @@ export default {
       });
     };
     onMounted(async () => {
-      const token = getLocal('token')
-      if (token) {
-        state.isLogin = true
-        // 获取购物车数据.
-        store.dispatch('updateCart')
-      }
-      Toast.loading({
-        message: '加载中...',
-        forbidClick: true
-      });
-      // const { data } = await getHome()
-      // state.swiperList = data.carousels
-      // state.newGoodses = data.newGoodses
-      // state.hots = data.hotGoodses
-      // state.recommends = data.recommendGoodses
-      state.loading = false
-      Toast.clear()
+      // const token = getLocal('token')
+      // if (token) {
+      //   state.isLogin = true
+      //   
+      //   store.dispatch('updateCart')
+      // }
+      // Toast.loading({
+      //   message: '加载中...',
+      //   forbidClick: true
+      // });
+      const { data } = await getRecruiters()
+      state.recruiterList = data
+      // state.loading = false
+      // Toast.clear()
 
       
     })
@@ -1298,6 +1323,8 @@ export default {
       areaConfirm4,
       afterRead,
       deleteHeadUrl,
+      recruiterConfirm,
+      onConfirm16,
 
     }
   },

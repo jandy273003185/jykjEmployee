@@ -24,4 +24,7 @@ export function ossUpload(params) {
 export function deleteFiles(params) {
   return axios.post('/sys/oss/delete',params);
 }
+export function getRecruiters() {
+  return axios.get('/sys/user/getRecruiters');
+}
 
