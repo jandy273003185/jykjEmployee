@@ -33,6 +33,7 @@
           </van-field>
           <van-field required label="民族" v-model="employeeForm.nation" is-link readonly @click="showNation = true" placeholder="民族"  :rules="[{ required: true, message: '请填写民族' }]"/>
           <van-popup v-model:show="showNation" round position="bottom">
+            <van-search placeholder="请输入民族" v-model="nationInput" @input="nationSearch(nationInput)" />
             <van-picker
               :columns="nationList"
               @cancel="showNation = false"
@@ -42,8 +43,11 @@
           <van-field required  name="uploader" label="个人照片">
             <template #input>
               <van-uploader v-model="fileList" @delete="deleteHeadUrl" :after-read="afterRead"  multiple  :max-count="1"/>
+              <span style="color:red;">(请上传近期的2寸人脸正面照片)</span>
             </template>
           </van-field>
+          <van-field required v-model="employeeForm.speciality" name="特长" label="特长" placeholder="特长" :rules="[{ required: true, message: '请填写特长' }]"/>
+          <van-field required v-model="employeeForm.hobby" name="爱好" label="爱好" placeholder="爱好" :rules="[{ required: true, message: '请填写爱好' }]"/>
           <van-field required label="政治面貌" v-model="employeeForm.politicalOutlook" is-link readonly @click="showPoliticsStatus = true" placeholder="政治面貌"  :rules="[{ required: true, message: '请填写政治面貌' }]"/>
           <van-popup v-model:show="showPoliticsStatus" round position="bottom">
             <van-picker
@@ -60,7 +64,7 @@
               @confirm="marriageConfirm"
             />
           </van-popup>
-          <van-field required readonly v-model="employeeForm.marriedDate" name="结婚时间" label="结婚时间" placeholder="结婚时间" :rules="[{ required: true, message: '请填写结婚时间' }]" @click="show3=true"/>
+          <van-field v-if="marriedDateVisible" required readonly v-model="employeeForm.marriedDate" name="结婚时间" label="结婚时间" placeholder="结婚时间" :rules="[{ required: true, message: '请填写结婚时间' }]" @click="show3=true"/>
           <van-popup v-model:show="show3" position="bottom">
              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm3" @cancel="show3=false"/>
           </van-popup>
@@ -87,8 +91,8 @@
           <van-popup v-model:show="show4" position="bottom">
              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm4" @cancel="show4=false"/>
           </van-popup>
-          <van-field required v-model="employeeForm.idCard" name="身份证号码" label="身份证号码" placeholder="身份证号码" :rules="idCardRules"/>
-          <van-field required v-model="employeeForm.birthDate" name="出生日期" label="出生日期" placeholder="出生日期" :rules="[{ required: true, message: '请填写出生日期' }]" @click="show2 = true"/>
+          <van-field required v-model="employeeForm.idCard" name="身份证号码" label="身份证号码" placeholder="身份证号码" :rules="idCardRules" @blur="idCardBlur"/>
+          <van-field required v-model="employeeForm.birthDate" name="出生日期" label="出生日期" placeholder="出生日期" :rules="[{ required: true, message: '请正确填写身份证号码' }]"/>
           <van-popup v-model:show="show2" position="bottom">
              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm2" @cancel="show2=false"/>
           </van-popup>
@@ -96,7 +100,7 @@
           <van-popup v-model:show="showArea2" position="bottom">
             <van-area :area-list="areaList" @confirm="areaConfirm2" @cancel="showArea2 = false"/>
           </van-popup>
-          <van-field v-model="employeeForm.idCardAddr" />
+          <van-field required v-model="employeeForm.idCardAddr" />
           <van-field required v-model="employeeForm.issuingAuthority" name="身份证签发机关" label="身份证签发机关" label-width="98" placeholder="身份证签发机关" :rules="[{ required: true, message: '请填写身份证签发机关' }]"/>
           <van-field required v-model="employeeForm.idCardStartDate" name="身份证有效开始时间" label-width="126" label="身份证有效开始时间" placeholder="身份证有效开始时间" :rules="[{ required: true, message: '请填写身份证有效开始时间' }]" @click="show = true"/>
           <van-popup v-model:show="show" position="bottom">
@@ -118,14 +122,14 @@
           <van-field required label="紧急联系人电话" label-width="98" v-model="employeeForm.emergencyMobile" placeholder="紧急联系人电话" :rules="telRules" name="mobile"></van-field>    
           <van-field required  name="radio" label="是否有亲友任职于我司">
             <template #input>
-              <van-radio-group v-model="employeeForm.relativeEmployment" direction="horizontal">
+              <van-radio-group v-model="employeeForm.relativeEmployment" direction="horizontal" @change="relativeEmploymentChange">
                 <van-radio name="0">否</van-radio>
                 <van-radio name="1">是</van-radio>
               </van-radio-group>
             </template>
         </van-field>
-        <van-field v-model="employeeForm.relativePerson" name="任职于我司亲友姓名" label="任职于我司亲友姓名" placeholder="任职于我司亲友姓名"/>  
-        <van-field label="任职于我司亲友与本人关系" v-model="employeeForm.relativePersonRelation" is-link readonly @click="showEmergencyContact3 = true" placeholder="任职于我司亲友与本人关系" />
+        <van-field v-if="relativeEmploymentVisible" v-model="employeeForm.relativePerson" name="任职于我司亲友姓名" label="任职于我司亲友姓名" placeholder="任职于我司亲友姓名"/>  
+        <van-field v-if="relativeEmploymentVisible" label="任职于我司亲友与本人关系" v-model="employeeForm.relativePersonRelation" is-link readonly @click="showEmergencyContact3 = true" placeholder="任职于我司亲友与本人关系" />
           <van-popup v-model:show="showEmergencyContact3" round position="bottom">
             <van-picker
               :columns="emergencyContact2List"
@@ -133,22 +137,22 @@
               @confirm="emergencyContact3Confirm"
             />
           </van-popup> 
-        <van-field v-model="employeeForm.relativePersonDepart" name="任职于我司亲友任职部门" label="任职于我司亲友任职部门" placeholder="任职于我司亲友任职部门"/>
+        <van-field v-if="relativeEmploymentVisible" v-model="employeeForm.relativePersonDepart" name="任职于我司亲友任职部门" label="任职于我司亲友任职部门" placeholder="任职于我司亲友任职部门"/>
         <van-field required v-model="_address" is-link readonly name="area" label="现居住地址" placeholder="现居住地址" :rules="[{ required: true, message: '请填写现居住地址' }]" @click="showArea3 = true"/>
           <van-popup v-model:show="showArea3" position="bottom">
             <van-area :area-list="areaList" @confirm="areaConfirm3" @cancel="showArea3 = false"/>
           </van-popup>
-        <van-field v-model="employeeForm.address"/>  
+        <van-field required v-model="employeeForm.address"/>  
         <van-field required v-model="_postAddress" is-link readonly name="area" label="邮寄地址" placeholder="邮寄地址" :rules="[{ required: true, message: '请填写邮寄地址' }]" @click="showArea4 = true"/>
           <van-popup v-model:show="showArea4" position="bottom">
             <van-area :area-list="areaList" @confirm="areaConfirm4" @cancel="showArea4 = false"/>
           </van-popup>
-        <van-field v-model="employeeForm.postAddress" style="margin-bottom:8px"/>  
+        <van-field required v-model="employeeForm.postAddress" style="margin-bottom:8px"/>  
         
-        <div class="content-title">家庭关系</div>
+        <div class="content-title"><span class="redColor">*</span>家庭关系</div>
         <div v-if="familyVisible" :model="familyForm" ref="familyRef">
           <template v-for="(item, index) in familyForm.familyRelations" :key="index">
-            <van-field label="与本人关系" v-model="item.relation" is-link readonly @click="item.showEmergencyContact = true" placeholder="与本人关系" />
+            <van-field required label="与本人关系" v-model="item.relation" is-link readonly @click="item.showEmergencyContact = true" placeholder="与本人关系" />
             <van-popup v-model:show="item.showEmergencyContact" round position="bottom">
               <van-picker
                 :columns="emergencyContact2List"
@@ -178,19 +182,9 @@
         <!-- </van-cell-group> -->
         <van-button icon="plus" type="primary" style="display:flex;margin:0px auto;margin-top:10px;margin-bottom:10px" @click="familyAdd"/>
 
-        <div class="content-title">教育经历</div>
+        <div class="content-title"><span class="redColor">*</span>教育经历<span class="redColor" style="font-size:10px">(请按照学历从高往低填写)</span></div>
         <div v-if="educationVisible" :model="educationForm" ref="educationRef">
           <template v-for="(item, index) in educationForm.educationalExperience" :key="index">
-            <van-field required v-model="item.enterDate" name="入学时间" label="入学时间" placeholder="入学时间" :rules="[{ required: true, message: '请填写入学时间' }]" @click="item.show = true"/>
-            <van-popup v-model:show="item.show" position="bottom">
-              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm7($event,index)" @cancel="item.show = false"/>
-            </van-popup>
-            <van-field required v-model="item.leaveDate" name="毕业时间" label="毕业时间" placeholder="毕业时间" :rules="[{ required: true, message: '请填写毕业时间' }]" @click="item.show2 = true"/>
-            <van-popup v-model:show="item.show2" position="bottom">
-              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm8($event,index)" @cancel="item.show2 = false"/>
-            </van-popup>
-            <van-field required v-model="item.schoolName" name="毕业院校" label="毕业院校" placeholder="毕业院校" :rules="[{ required: true, message: '请填写毕业院校' }]"/>
-            <van-field required v-model="item.major" name="专业" label="专业" placeholder="专业" :rules="[{ required: true, message: '请填写专业' }]"/>
             <van-field required label="学历" v-model="item.education" is-link readonly @click="item.showEducation = true" placeholder="学历"  :rules="[{ required: true, message: '请填写学历' }]"/>
               <van-popup v-model:show="item.showEducation" round position="bottom">
                 <van-picker
@@ -207,6 +201,17 @@
                   @confirm="educationCertificateConfirm($event,index)"
                 />
               </van-popup>
+            <van-field required v-model="item.schoolName" name="毕业院校" label="毕业院校" placeholder="毕业院校" :rules="[{ required: true, message: '请填写毕业院校' }]"/>
+            <van-field required v-model="item.major" name="专业" label="专业" placeholder="专业" :rules="[{ required: true, message: '请填写专业' }]"/>
+            <van-field required v-model="item.enterDate" name="入学时间" label="入学时间" placeholder="入学时间" :rules="[{ required: true, message: '请填写入学时间' }]" @click="item.show = true"/>
+            <van-popup v-model:show="item.show" position="bottom">
+              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm7($event,index)" @cancel="item.show = false"/>
+            </van-popup>
+            <van-field required v-model="item.leaveDate" name="毕业时间" label="毕业时间" placeholder="毕业时间" :rules="[{ required: true, message: '请填写毕业时间' }]" @click="item.show2 = true"/>
+            <van-popup v-model:show="item.show2" position="bottom">
+              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm8($event,index)" @cancel="item.show2 = false"/>
+            </van-popup>
+            
             <van-field required label="学习方式" v-model="item.studyStyle" is-link readonly @click="item.showStudyStyle = true" placeholder="学习方式"  :rules="[{ required: true, message: '请填写学习方式' }]"/>
               <van-popup v-model:show="item.showStudyStyle" round position="bottom">
                 <van-picker
@@ -236,7 +241,7 @@
           </template>
         </div>
         <van-button icon="plus" type="primary" style="display:flex;margin:0px auto;margin-top:10px;margin-bottom:10px" @click="educationAdd"/>
-        <div class="content-title">工作经历</div>
+        <div class="content-title"><span class="redColor">*</span>工作经历<span class="redColor" style="font-size:10px">(请填写完整的工作经历)</span></div>
         <div v-if="workVisible" :model="workForm" ref="workRef">
           <template v-for="(item, index) in workForm.workExperience" :key="index">
             <van-field required v-model="item.startDate" name="开始时间" label="开始时间" placeholder="开始时间" :rules="[{ required: true, message: '请填写开始时间' }]" @click="item.show = true"/>
@@ -518,7 +523,7 @@ export default {
             trigger: 'onBlur'
         }, {
             validator: value => {
-                return /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/
+                return /^(0|86|17951)?(13[0-9]|15[012356789]|16|17[3678]|18|19[0-9]|14[57])[0-9]{8}$/
                     .test(value)
             },
             message: '请输入正确格式的手机号',
@@ -542,7 +547,8 @@ export default {
       _postAddress:'',
       showNativePlace:false,
       showNation:false,
-      nationList : [
+      nationInput:'',
+      nationList2 : [
         {
           id: 1,
           text: "HA/汉族",
@@ -824,8 +830,9 @@ export default {
           value: 56,
         },
       ],
+      nationList:[],
       showMarriage:false,
-      marriageList:['未婚','已婚','离婚','丧偶'],
+      marriageList:['1/未婚','2/已婚','3/离婚','4/丧偶'],
       showHouseholdType:false,
       householdTypeList:['1/城镇户口','2/农业户口','3/其他','9/深圳户口'],
       showEmergencyContact2:false,
@@ -835,7 +842,8 @@ export default {
       showEducation:false,
       educationList:['10/博士研究生','11/硕士研究生','12/大学本科','13/大学专科','14/中专中技','15/高中','16/初中','17/小学'],
       showEducationCertificate:false,
-      educationCertificateList:['10/学士','11/硕士','12/博士及以上','Z1/无'],
+      educationCertificateList2:[{text:'10/学士',disabled:false},{text:'11/硕士',disabled:false},{text:'12/博士及以上',disabled:false},{text:'Z1/无',disabled:false}],
+      educationCertificateList:[],
       photo:[],
       diploma:[],
       identityCardFront:[],
@@ -936,6 +944,8 @@ export default {
       },
       fileList:[],
       recruiterList:[],
+      marriedDateVisible:false,
+      relativeEmploymentVisible:false,
       
     })
     const formatDate = (date) => `${date.getFullYear()}-${(date.getMonth() + 1)<10?'0'+(date.getMonth() + 1):(date.getMonth() + 1)}-${date.getDate()<10?'0'+date.getDate():date.getDate()}`;
@@ -1056,6 +1066,11 @@ export default {
     const marriageConfirm = (value) => {
       state.employeeForm.maritalStatus = value;
       state.showMarriage = false;
+      if(value == '2/已婚'){
+        state.marriedDateVisible = true
+      }else{
+        state.marriedDateVisible = false
+      }
     };
     const householdTypeConfirm = (value) => {
       state.employeeForm.residenceType = value;
@@ -1076,10 +1091,46 @@ export default {
     const educationConfirm = (value,index) => {
       state.educationForm.educationalExperience[index].showEducation = false;
       state.educationForm.educationalExperience[index].education = value;
+      state.educationCertificateList = state.educationCertificateList2;
+      state.educationForm.educationalExperience[index].degree = '';
+      let arr = [];
+      for(let i = 0; i < state.educationList.length; i++){
+        if((state.educationList[i] == '13/大学专科' && state.educationList[i] == value) || (state.educationList[i] == '14/中专中技' && state.educationList[i] == value) || (state.educationList[i] == '15/高中' && state.educationList[i] == value) || (state.educationList[i] == '16/初中' && state.educationList[i] == value) || (state.educationList[i] == '17/小学' && state.educationList[i] == value)){
+          state.educationCertificateList.map((item)=>{
+            if(item.text != 'Z1/无'){
+              // item.disabled = true
+            }else{
+              // item.disabled = false
+            }
+          })
+          // {text:'10/学士',disabled:false},{text:'11/硕士',disabled:false},{text:'12/博士及以上',disabled:false},{text:'Z1/无',disabled:false}
+        }else if(state.educationList[i] == '12/大学本科' && state.educationList[i] == value){
+          state.educationCertificateList.map((item)=>{
+            if(item.text == '10/学士'){
+              // item.disabled = false
+              arr.push({text:'10/学士'})
+            }
+          })
+        }else if(state.educationList[i] == '11/硕士研究生' && state.educationList[i] == value){
+          state.educationCertificateList.map((item)=>{
+            if(item.text == '11/硕士'){
+              arr.push({text:'11/硕士'})
+            }
+          })
+        }else if(state.educationList[i] == '10/博士研究生' && state.educationList[i] == value){
+          state.educationCertificateList.map((item)=>{
+            if(item.text == '12/博士及以上'){
+              arr.push({text:'12/博士及以上'})
+            }
+          })
+        }
+      }
+      arr.push({text:'Z1/无'})
+      state.educationCertificateList = arr;
     };
     const educationCertificateConfirm = (value,index) => {
       state.educationForm.educationalExperience[index].showEducationCertificate = false;
-      state.educationForm.educationalExperience[index].degree = value;
+      state.educationForm.educationalExperience[index].degree = value.text;
     };
     const goAbroadForConfirm = (value,index) => {
       state.goAbroadForm.foreignExperience[index].showGoAbroadFor = false;
@@ -1171,10 +1222,28 @@ export default {
       state.employeeForm.recruiter = value.realName;
       state.employeeForm.showRecruiter = false;
     };
+    const idCardBlur = (e) => {
+      let birthDate = e.target.value.substr(6,8)
+      let year = birthDate.substr(0,4);
+      let month = birthDate.substr(4,2);
+      let day = birthDate.substr(6,2);
+      state.employeeForm.birthDate = year+'-'+month+'-'+day;
+    }
+    const relativeEmploymentChange = (val)=>{
+      if(val == 1){
+        state.relativeEmploymentVisible = true
+      }else{
+        state.relativeEmploymentVisible = false
+      }
+    }
     const onSubmit = async () => {
       state.employeeForm.idCardAddr = state._idCardAddr+state.employeeForm.idCardAddr;
       state.employeeForm.address = state._address+state.employeeForm.address;
       state.employeeForm.postAddress = state._postAddress+state.employeeForm.postAddress;
+      if(state.familyForm.familyRelations.length<1){Toast.fail('请填写家庭关系！'); return;}
+      if(state.educationForm.educationalExperience.length<1){Toast.fail('请填写教育经历！'); return;}
+      if(state.workForm.workExperience.length<1){Toast.fail('请填写工作经历！'); return;}
+      if(state.otherForm.restrictTime == 1){Toast.fail('您仍处于竞业协议期内，无法提交入职信息，请先和对应的招聘专员联系'); return}
       const { code } = await staffInfoSave({
         ...state.employeeForm,
         ...state.familyForm,
@@ -1182,8 +1251,8 @@ export default {
         ...state.workForm,
         ...state.goAbroadForm,
         ...state.professionalTitleForm,
-        ...state. trainForm,
-        ...state. healthForm,
+        ...state.trainForm,
+        ...state.healthForm,
         ...state.otherForm
       })
       // const {code} = await staffInfoSave(
@@ -1249,7 +1318,8 @@ export default {
       // state.loading = false
       // Toast.clear()
 
-      
+      state.nationList = state.nationList2
+      state.educationCertificateList = state.educationCertificateList2
     })
 
     nextTick(() => {
@@ -1266,7 +1336,17 @@ export default {
     const tips = () => {
       Toast('敬请期待');
     }
-
+    const nationSearch = (val) =>{
+      state.nationList = state.nationList2
+      let arr = [];
+      state.nationList.map((item) => {
+        if (item.text.indexOf(val) > -1) {
+          arr.push(item)
+          return item
+        }
+      })
+      state.nationList = arr;
+    }
     return {
       ...toRefs(state),
       goToDetail,
@@ -1325,6 +1405,9 @@ export default {
       deleteHeadUrl,
       recruiterConfirm,
       onConfirm16,
+      nationSearch,
+      idCardBlur,
+      relativeEmploymentChange,
 
     }
   },
@@ -1365,5 +1448,9 @@ export default {
       font-size: 16px;
       padding-left: 16px;
     }
+  }
+  .redColor{
+    color:red;
+    margin-right:2px
   }
 </style>

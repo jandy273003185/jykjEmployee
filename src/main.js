@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { ActionBar, ActionBarIcon, ActionBarButton, Divider, Popup, Overlay, Loading, Dialog, ContactCard, Form, AddressEdit, AddressList, Field, CellGroup, Cell, SwipeCell, Icon, Stepper, Card, Checkbox, CheckboxGroup, Button, Swipe, SwipeItem, PullRefresh, List, Tab, Tabs, SubmitBar, Toast, Skeleton,RadioGroup, Radio,Calendar,Area,DropdownMenu,DropdownItem,Picker,Uploader,DatetimePicker} from 'vant'
+import { ActionBar, ActionBarIcon, ActionBarButton, Divider, Popup, Overlay, Loading, Dialog, ContactCard, Form, AddressEdit, AddressList, Field, CellGroup, Cell, SwipeCell, Icon, Stepper, Card, Checkbox, CheckboxGroup, Button, Swipe, SwipeItem, PullRefresh, List, Tab, Tabs, SubmitBar, Toast, Skeleton,RadioGroup, Radio,Calendar,Area,DropdownMenu,DropdownItem,Picker,Uploader,DatetimePicker,Search } from 'vant'
 import App from './App.vue'
 import store from './store'
 import router from './router'
@@ -14,8 +14,8 @@ app.config.globalProperties.$filters = {
     if (url && url.startsWith('http')) {
       return url
     } else {
-      // url = `http://172.26.10.25:8080/api/${url}`
-      url = `http://172.26.253.38:8889/api/${url}`//服务器
+      url = `http://172.26.10.32:8080/api/${url}`
+      // url = `http://172.26.253.38:8889/api/${url}`//服务器
       return url
     }
   }
@@ -61,6 +61,7 @@ app.use(ActionBarButton)
   .use(Picker)
   .use(Uploader)
   .use(DatetimePicker)
+  .use(Search )
 
 app.use(router)
 app.use(store)
