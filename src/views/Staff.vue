@@ -21,10 +21,10 @@
       <van-form @submit="onSubmit" style="margin:0 16px"  :model="employeeForm">
         <!-- <van-cell-group inset> -->
           <div class="content-title">个人基本信息</div>
-          <van-field required v-model="employeeForm.realName" name="姓名" label="姓名" placeholder="姓名" :rules="[{ required: true, message: '请填写姓名' }]"/>
+          <van-field required v-model="employeeForm.realName" name="姓名" label="姓名" placeholder="姓名" :rules="realNameRules"/>
           <van-field required  name="radio" label="性别">
             <template #input>
-              <van-radio-group v-model="employeeForm.gender" direction="horizontal">
+              <van-radio-group v-model="employeeForm.gender" direction="horizontal" disabled>
                 <van-radio name="0">男</van-radio>
                 <van-radio name="1">女</van-radio>
               </van-radio-group>
@@ -32,7 +32,7 @@
           </van-field>
           <van-field required label="民族" v-model="employeeForm.nation" is-link readonly @click="showNation = true" placeholder="民族"  :rules="[{ required: true, message: '请填写民族' }]"/>
           <van-popup v-model:show="showNation" round position="bottom">
-            <van-search placeholder="请输入民族" v-model="nationInput" @input="nationSearch(nationInput)" />
+            <van-search placeholder="请输入民族" v-model="nationInput" @input="nationSearch(nationInput)" @clear="nationSearch(nationInput)"/>
             <van-picker
               :columns="nationList"
               @cancel="showNation = false"
@@ -99,7 +99,7 @@
           <van-popup v-model:show="show5" position="bottom">
              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate2" @confirm="onConfirm5" @cancel="show5=false"/>
           </van-popup>
-          <van-field required v-model="employeeForm.emergency" name="紧急联系人" label="紧急联系人" placeholder="紧急联系人" :rules="[{ required: true, message: '请填写紧急联系人' }]"/>
+          <van-field required v-model="employeeForm.emergency" name="紧急联系人" label="紧急联系人" placeholder="紧急联系人" :rules="realNameRules"/>
           <van-field required label="紧急联系人与本人关系" v-model="employeeForm.emergencyRelation" is-link readonly @click="showEmergencyContact2 = true" placeholder="紧急联系人与本人关系"  :rules="[{ required: true, message: '请填写紧急联系人与本人关系' }]"/>
           <van-popup v-model:show="showEmergencyContact2" round position="bottom">
             <van-picker
@@ -130,7 +130,7 @@
                 @confirm="emergencyContact4Confirm($event,index)"
               />
             </van-popup> 
-            <van-field required v-model="item.name" name="姓名" label="姓名" placeholder="姓名" :rules="[{ required: true, message: '请填写姓名' }]"/>
+            <van-field required v-model="item.name" name="姓名" label="姓名" placeholder="姓名" :rules="realNameRules"/>
             <van-field required  name="radio" label="性别">
               <template #input>
                 <van-radio-group v-model="item.gender" direction="horizontal">
@@ -187,9 +187,30 @@
           </template>
         </div>
         <van-button icon="plus" type="primary" style="display:flex;margin:0px auto;margin-top:10px;margin-bottom:10px" @click="educationAdd"/>
+        <div class="content-title"><span class="redColor">*</span>工作经历<span class="redColor" style="font-size:10px">(请填写完整的工作经历)</span></div>
+        <div v-if="workVisible" :model="workForm" ref="workRef">
+          <template v-for="(item, index) in workForm.workExperience" :key="index">
+            <van-field required v-model="item.startDate" name="开始时间" label="开始时间" placeholder="开始时间" :rules="[{ required: true, message: '请填写开始时间' }]" @click="item.show = true"/>
+            <van-popup v-model:show="item.show" position="bottom">
+              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm9($event,index)" @cancel="item.show = false"/>
+            </van-popup>
+            <van-field required v-model="item.endDate" name="结束时间" label="结束时间" placeholder="结束时间" :rules="[{ required: true, message: '请填写结束时间' }]" @click="item.show2 = true"/>
+            <van-popup v-model:show="item.show2" position="bottom">
+              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate" @confirm="onConfirm10($event,index)" @cancel="item.show2 = false"/>
+            </van-popup>
+            <van-field required v-model="item.company" name="工作单位名称" label="工作单位名称" placeholder="工作单位名称" :rules="[{ required: true, message: '请填写工作单位名称' }]"/>
+            <van-field required v-model="item.depart" name="所属部门" label="所属部门" placeholder="所属部门" :rules="[{ required: true, message: '请填写所属部门' }]"/>
+            <van-field required v-model="item.post" name="职务名称" label="职务名称" placeholder="职务名称" :rules="[{ required: true, message: '请填写职务名称' }]"/>
+            <van-field required v-model="item.witness" name="证明人" label="证明人" placeholder="证明人" :rules="realNameRules"/>
+            <van-field required label="联系电话" v-model="item.mobile" placeholder="联系电话" :rules="telRules" name="mobile"></van-field>
+            <van-button icon="minus" type="danger" style="display:flex;margin:6px auto;" @click="workDel(item)"/>
+          </template>
+        </div>
+        <van-button icon="plus" type="primary" style="display:flex;margin:0px auto;margin-top:10px;margin-bottom:10px" @click="workAdd"/>
+        
         <div class="content-title">健康状况</div>
         <div :model="healthForm" ref="healthRef">
-            <van-field label="目前身体状况" v-model="healthForm.health" is-link readonly @click="healthForm.showPhysicalCondition = true" placeholder="目前身体状况" />
+            <van-field required label="目前身体状况" v-model="healthForm.health" is-link readonly @click="healthForm.showPhysicalCondition = true" placeholder="目前身体状况" :rules="[{ required: true, message: '请填写目前身体状况' }]" />
             <van-popup v-model:show="healthForm.showPhysicalCondition" round position="bottom">
               <van-picker
                 :columns="physicalConditionList"
@@ -257,9 +278,23 @@
               </template>
             </van-field>
         </div>
-
-        <!-- <van-field v-model="employeeForm.recruiter" name="招聘人姓名" label="招聘人姓名" placeholder="招聘人姓名" /> -->
-        
+        <van-field required label="入职方式" v-model="employeeForm.inductionMode" is-link readonly @click="employeeForm.showInductionMode = true" placeholder="入职方式" />
+        <van-popup required v-model:show="employeeForm.showInductionMode" round position="bottom">
+          <van-picker
+            :columns="inductionModeList"
+            @cancel="employeeForm.showInductionMode = false"
+            @confirm="inductionModeConfirm"
+            
+          />
+        </van-popup> 
+        <van-field v-if="inductionModeVisible" required v-model="employeeForm.referrerEmpno" name="推荐人工号" label="推荐人工号" placeholder="推荐人工号"  :rules="[{ required: true, message: '请填写推荐人工号' }]"/>
+        <van-field v-if="inductionModeVisible" required v-model="employeeForm.referrer" name="推荐人姓名" label="推荐人姓名" placeholder="推荐人姓名"  :rules="[{ required: true, message: '请填写推荐人姓名' }]"/>
+        <van-overlay :show="showOverlay">
+          <div class="wrapper">
+            <van-loading type="spinner" color="#1989fa" />
+            <div style="margin-top:20px;color:#fff">保存中...请稍等</div>
+          </div>
+        </van-overlay>
         <div style="padding: 20px 0">
           <van-button round block type="primary" native-type="submit">
             提交
@@ -271,7 +306,7 @@
 </template>
 
 <script>
-import { reactive, toRefs, nextTick,onMounted } from 'vue'
+import { reactive, toRefs, nextTick,onMounted,watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { workerInfoSave,ossUpload,deleteFiles} from '@/service/home'
 import { Toast } from 'vant'
@@ -292,6 +327,18 @@ export default {
       loading: true,
       username:'',
       password:'',
+      realNameRules:[
+        {
+            required: true,
+            message: '请填写姓名',
+            trigger: 'onBlur'
+        }, {
+            validator: value => {
+                return /^[\u4e00-\u9fa5]{2,4}$/.test(value)||/^[a-zA-Z]{0,10}$/.test(value)
+            },
+            message: '请输入正确的姓名',
+            trigger: 'onBlur'
+      }],
       idCardRules:[{
             required: true,
             message: '身份证号不能为空',
@@ -310,7 +357,7 @@ export default {
             trigger: 'onBlur'
         }, {
             validator: value => {
-                return /^(0|86|17951)?(13[0-9]|15[012356789]|16|17[3678]|18|19[0-9]|14[57])[0-9]{8}$/
+                return /^(0|86|17951)?(13[0-9]|14[0-9]|15[0-9]|16[0-9]|17[0-9]|18[0-9]|19[0-9])[0-9]{8}$/
                     .test(value)
             },
             message: '请输入正确格式的手机号',
@@ -655,9 +702,17 @@ export default {
           }]
       },
       studyStyleList:['10/统招全日制','11/自考','12/成人教育','13/函授','14/夜校教育','15/远程教育'],
+      workVisible:false,
+      workForm: {
+          workExperience: [{
+              show:false,
+              date: '',
+          }]
+      },
       costAssumeList:['公司全额承担','个人全额承担','公司和个人比例承担'],
       healthForm: {showPhysicalCondition:false,},
       physicalConditionList:['10/健康', '11/良好', '12/抱恙'],
+      inductionModeList:['内部推荐','劳务派遣','社会招聘','网络招聘'],
       otherForm:{},
       employeeForm:{
         name:'',
@@ -683,11 +738,44 @@ export default {
         address:'',
         postAddress:'',
         headUrl:'',
+        showInductionMode:false,
+        referrerEmpno:'',
+        referrer:'',
+
         
       },
       fileList:[],
+      inductionModeVisible:false,
+      showOverlay:false,
     })
-
+    //设置cookie
+    const setCookie = (c_name,value,expiredays)=>{
+      let exdate=new Date()
+      exdate.setDate(exdate.getDate()+expiredays)
+      document.cookie=c_name+ "=" +escape(value)+
+      ((expiredays==null) ? "" : ";expires="+exdate.toGMTString())
+    }
+    //取回cookie
+    const getCookie = (c_name)=>{
+    if (document.cookie.length>0)
+      {
+      let c_start=document.cookie.indexOf(c_name + "=")
+      if (c_start!=-1)
+        { 
+        c_start=c_start + c_name.length+1 
+        let c_end=document.cookie.indexOf(";",c_start)
+        if (c_end==-1) c_end=document.cookie.length
+        return unescape(document.cookie.substring(c_start,c_end))
+        } 
+      }
+      return ""
+    }
+    if(getCookie('employeeForm2')){state.employeeForm = JSON.parse(getCookie('employeeForm2'));}
+    if(getCookie('familyForm2')){state.familyForm = JSON.parse(getCookie('familyForm2'));}
+    if(getCookie('educationForm2')){state.educationForm = JSON.parse(getCookie('educationForm2'));}
+    if(getCookie('workForm2')){state.workForm = JSON.parse(getCookie('workForm2'));}
+    if(getCookie('healthForm2')){state.healthForm = JSON.parse(getCookie('healthForm2'));}
+    if(getCookie('otherForm2')){state.otherForm = JSON.parse(getCookie('otherForm2'));}
     const formatDate = (date) => `${date.getFullYear()}-${(date.getMonth() + 1)<10?'0'+(date.getMonth() + 1):(date.getMonth() + 1)}-${date.getDate()<10?'0'+date.getDate():date.getDate()}`;
     const onConfirm = (value) => {
       state.show = false;
@@ -840,6 +928,24 @@ export default {
           state.educationForm.educationalExperience.splice(index, 1)
       }
     };
+    const workAdd = ()=>{
+      if(!state.workVisible){state.workVisible = true; return;}
+      state.workForm.workExperience.push({date:''})
+    };
+    const workDel = (item)=>{
+      const index = state.workForm.workExperience.indexOf(item)
+      if (index !== -1) {
+          state.workForm.workExperience.splice(index, 1)
+      }
+    };
+    const onConfirm9 = (value,index) => {
+      state.workForm.workExperience[index].show = false;
+      state.workForm.workExperience[index].startDate = formatDate(value);
+    }
+    const onConfirm10 = (value,index) => {
+      state.workForm.workExperience[index].show2 = false;
+      state.workForm.workExperience[index].endDate = formatDate(value);
+    }
     const physicalConditionConfirm = (value) => {
       state.healthForm.health = value;
       state.healthForm.showPhysicalCondition = false;
@@ -850,18 +956,31 @@ export default {
       let month = birthDate.substr(4,2);
       let day = birthDate.substr(6,2);
       state.employeeForm.birthDate = year+'-'+month+'-'+day;
+      if(e.target.value.substr(16,1)%2==0){state.employeeForm.gender = '1'}else{state.employeeForm.gender = '0'}
     }
+    const inductionModeConfirm = (value) => {
+      state.employeeForm.inductionMode = value;
+      state.employeeForm.showInductionMode = false;
+      if(value=='内部推荐'){
+        state.inductionModeVisible = true;
+      }else{
+        state.inductionModeVisible = false;
+      }
+    };
     const onSubmit = async () => {
       state.employeeForm.idCardAddr = state._idCardAddr+state.employeeForm.idCardAddr;
       state.employeeForm.address = state._address+state.employeeForm.address;
       state.employeeForm.postAddress = state._postAddress+state.employeeForm.postAddress;
       if(state.familyForm.familyRelations.length<1){Toast.fail('请填写家庭关系！'); return;}
       if(state.educationForm.educationalExperience.length<1){Toast.fail('请填写教育经历！'); return;}
+      if(state.workForm.workExperience.length<1){Toast.fail('请填写工作经历！'); return;}
       if(state.otherForm.restrictTime == 1){Toast.fail('您仍处于竞业协议期内，无法提交入职信息，请先和对应的招聘专员联系'); return}
+      state.showOverlay = true;
       const { code } = await workerInfoSave({
         ...state.employeeForm,
         ...state.familyForm,
         ...state.educationForm,
+        ...state.workForm,
         ...state.healthForm,
         ...state.otherForm
       })
@@ -880,7 +999,7 @@ export default {
       //   "showPhysicalCondition":false,"health":"健康","oneYearSurgicalHistory":"0","majorDiseasesHistory":"0","infectiousDiseases":"0","secrecyAgreement":"0","restrictTime":"0","illegalRecord":"0","majorPenalize":"0"
       //   }
       // )
-      
+      state.showOverlay = false;
       if(code == '0'){
         Toast.success('保存成功')
       }
@@ -899,6 +1018,15 @@ export default {
         }
       });
     };
+    const dataCache = ()=>{
+      //设置cookie，有效期为365天
+      setCookie('employeeForm2',JSON.stringify({...state.employeeForm}),365);
+      setCookie('familyForm2',JSON.stringify({...state.familyForm}),365);
+      setCookie('educationForm2',JSON.stringify({...state.educationForm}),365);
+      setCookie('workForm2',JSON.stringify({...state.workForm}),365);
+      setCookie('healthForm2',JSON.stringify({...state.healthForm}),365);
+      setCookie('otherForm2',JSON.stringify({...state.otherForm}),365);
+    }
     const deleteHeadUrl = ()=>{
       let formData = new FormData();
       formData.append("fileName", state.employeeForm.headUrl.substr(6,state.employeeForm.headUrl.length));
@@ -926,7 +1054,12 @@ export default {
     onMounted(async () => {
       state.nationList = state.nationList2
       state.educationCertificateList = state.educationCertificateList2
+      // window.addEventListener("beforeunload", (e) => dataCache(e));
+      // window.addEventListener("unload", (e) => dataCache(e));
     })
+    watch(()=>state,(newValue,oldValue)=>{
+      dataCache(newValue,oldValue);
+    },{ deep: true,immediate:true })
     const nationSearch = (val) =>{
       state.nationList = state.nationList2
       let arr = [];
@@ -939,6 +1072,9 @@ export default {
       state.nationList = arr;
     }
     return {
+      dataCache,
+      setCookie,
+      getCookie,
       ...toRefs(state),
       goToDetail,
       tips,
@@ -972,6 +1108,11 @@ export default {
       deleteHeadUrl,
       nationSearch,
       idCardBlur,
+      workAdd,
+      workDel,
+      onConfirm9,
+      onConfirm10,
+      inductionModeConfirm,
     }
   },
 }
@@ -1015,5 +1156,18 @@ export default {
   .redColor{
     color:red;
     margin-right:2px
+  }
+  .wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .block {
+    width: 120px;
+    height: 120px;
+    background-color: #fff;
   }
 </style>

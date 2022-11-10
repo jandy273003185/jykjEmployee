@@ -22,10 +22,10 @@
         <!-- <van-cell-group inset> -->
           <div class="content-title">个人基本信息</div>
           
-          <van-field required v-model="employeeForm.realName" name="姓名" label="姓名" placeholder="姓名" :rules="[{ required: true, message: '请填写姓名' }]"/>
+          <van-field required v-model="employeeForm.realName" name="姓名" label="姓名" placeholder="姓名" :rules="realNameRules"/>
           <van-field required  name="radio" label="性别">
             <template #input>
-              <van-radio-group v-model="employeeForm.gender" direction="horizontal">
+              <van-radio-group v-model="employeeForm.gender" direction="horizontal" disabled>
                 <van-radio name="0">男</van-radio>
                 <van-radio name="1">女</van-radio>
               </van-radio-group>
@@ -33,7 +33,7 @@
           </van-field>
           <van-field required label="民族" v-model="employeeForm.nation" is-link readonly @click="showNation = true" placeholder="民族"  :rules="[{ required: true, message: '请填写民族' }]"/>
           <van-popup v-model:show="showNation" round position="bottom">
-            <van-search placeholder="请输入民族" v-model="nationInput" @input="nationSearch(nationInput)" />
+            <van-search placeholder="请输入民族" v-model="nationInput" @input="nationSearch(nationInput)" @clear="nationSearch(nationInput)"/>
             <van-picker
               :columns="nationList"
               @cancel="showNation = false"
@@ -110,7 +110,7 @@
           <van-popup v-model:show="show5" position="bottom">
              <van-datetime-picker type="date" v-model="currDate" :min-date="minDate" :max-date="maxDate2" @confirm="onConfirm5" @cancel="show5=false"/>
           </van-popup>
-          <van-field required v-model="employeeForm.emergency" name="紧急联系人" label="紧急联系人" placeholder="紧急联系人" :rules="[{ required: true, message: '请填写紧急联系人' }]"/>
+          <van-field required v-model="employeeForm.emergency" name="紧急联系人" label="紧急联系人" placeholder="紧急联系人" :rules="realNameRules"/>
           <van-field required label="紧急联系人与本人关系" v-model="employeeForm.emergencyRelation" is-link readonly @click="showEmergencyContact2 = true" placeholder="紧急联系人与本人关系"  :rules="[{ required: true, message: '请填写紧急联系人与本人关系' }]"/>
           <van-popup v-model:show="showEmergencyContact2" round position="bottom">
             <van-picker
@@ -128,7 +128,7 @@
               </van-radio-group>
             </template>
         </van-field>
-        <van-field v-if="relativeEmploymentVisible" v-model="employeeForm.relativePerson" name="任职于我司亲友姓名" label="任职于我司亲友姓名" placeholder="任职于我司亲友姓名"/>  
+        <van-field v-if="relativeEmploymentVisible" v-model="employeeForm.relativePerson" name="任职于我司亲友姓名" label="任职于我司亲友姓名" placeholder="任职于我司亲友姓名" :rules="realNameRules"/>  
         <van-field v-if="relativeEmploymentVisible" label="任职于我司亲友与本人关系" v-model="employeeForm.relativePersonRelation" is-link readonly @click="showEmergencyContact3 = true" placeholder="任职于我司亲友与本人关系" />
           <van-popup v-model:show="showEmergencyContact3" round position="bottom">
             <van-picker
@@ -160,7 +160,7 @@
                 @confirm="emergencyContact4Confirm($event,index)"
               />
             </van-popup> 
-            <van-field required v-model="item.name" name="姓名" label="姓名" placeholder="姓名" :rules="[{ required: true, message: '请填写姓名' }]"/>
+            <van-field required v-model="item.name" name="姓名" label="姓名" placeholder="姓名" :rules="realNameRules"/>
             <van-field required  name="radio" label="性别">
               <template #input>
                 <van-radio-group v-model="item.gender" direction="horizontal">
@@ -255,7 +255,7 @@
             <van-field required v-model="item.company" name="工作单位名称" label="工作单位名称" placeholder="工作单位名称" :rules="[{ required: true, message: '请填写工作单位名称' }]"/>
             <van-field required v-model="item.depart" name="所属部门" label="所属部门" placeholder="所属部门" :rules="[{ required: true, message: '请填写所属部门' }]"/>
             <van-field required v-model="item.post" name="职务名称" label="职务名称" placeholder="职务名称" :rules="[{ required: true, message: '请填写职务名称' }]"/>
-            <van-field required v-model="item.witness" name="证明人" label="证明人" placeholder="证明人" :rules="[{ required: true, message: '请填写证明人' }]"/>
+            <van-field required v-model="item.witness" name="证明人" label="证明人" placeholder="证明人" :rules="realNameRules"/>
             <van-field required label="联系电话" v-model="item.mobile" placeholder="联系电话" :rules="telRules" name="mobile"></van-field>
             <van-button icon="minus" type="danger" style="display:flex;margin:6px auto;" @click="workDel(item)"/>
           </template>
@@ -343,7 +343,7 @@
         <van-button icon="plus" type="primary" style="display:flex;margin:0px auto;margin-top:10px;margin-bottom:10px" @click="trainAdd"/>
         <div class="content-title">健康状况</div>
         <div :model="healthForm" ref="healthRef">
-            <van-field label="目前身体状况" v-model="healthForm.health" is-link readonly @click="healthForm.showPhysicalCondition = true" placeholder="目前身体状况" />
+            <van-field required label="目前身体状况" v-model="healthForm.health" is-link readonly @click="healthForm.showPhysicalCondition = true" placeholder="目前身体状况" :rules="[{ required: true, message: '请填写目前身体状况' }]" />
             <van-popup v-model:show="healthForm.showPhysicalCondition" round position="bottom">
               <van-picker
                 :columns="physicalConditionList"
@@ -470,6 +470,12 @@
         </van-field> -->
 
         <!-- </van-cell-group> -->
+        <van-overlay :show="showOverlay">
+          <div class="wrapper">
+            <van-loading type="spinner" color="#1989fa" />
+            <div style="margin-top:20px;color:#fff">保存中...请稍等</div>
+          </div>
+        </van-overlay>
         <div style="padding: 20px 0">
           <van-button round block type="primary" native-type="submit">
             提交
@@ -481,7 +487,7 @@
 </template>
 
 <script>
-import { reactive, onMounted, toRefs, nextTick } from 'vue'
+import { reactive, onMounted, toRefs, nextTick,watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { staffInfoSave, ossUpload,deleteFiles,getRecruiters,} from '@/service/home'
 // import { getLocal } from '@/common/js/utils'
@@ -494,6 +500,7 @@ export default {
   },
   setup() {
     // const store = useStore()
+    
     const router = useRouter()
     const state = reactive({
       swiperList: [], // 轮播图列表
@@ -505,7 +512,20 @@ export default {
       loading: true,
       username:'',
       password:'',
-      idCardRules:[{
+      realNameRules:[
+        {
+            required: true,
+            message: '请填写姓名',
+            trigger: 'onBlur'
+        }, {
+            validator: value => {
+                return /^[\u4e00-\u9fa5]{2,4}$/.test(value)||/^[a-zA-Z]{0,10}$/.test(value)
+            },
+            message: '请输入正确的姓名',
+            trigger: 'onBlur'
+      }],
+      idCardRules:[
+        {
             required: true,
             message: '身份证号不能为空',
             trigger: 'onBlur'
@@ -523,7 +543,7 @@ export default {
             trigger: 'onBlur'
         }, {
             validator: value => {
-                return /^(0|86|17951)?(13[0-9]|15[012356789]|16|17[3678]|18|19[0-9]|14[57])[0-9]{8}$/
+                return /^(0|86|17951)?(13[0-9]|14[0-9]|15[0-9]|16[0-9]|17[0-9]|18[0-9]|19[0-9])[0-9]{8}$/
                     .test(value)
             },
             message: '请输入正确格式的手机号',
@@ -907,6 +927,7 @@ export default {
       physicalConditionList:['10/健康', '11/良好', '12/抱恙'],
       otherForm:{},
       employeeForm:{
+        realName:'',
         name:'',
         gender:'0',
         mobile:'',
@@ -946,8 +967,40 @@ export default {
       recruiterList:[],
       marriedDateVisible:false,
       relativeEmploymentVisible:false,
+      showOverlay:false,
       
     })
+    //设置cookie
+    const setCookie = (c_name,value,expiredays)=>{
+      let exdate=new Date()
+      exdate.setDate(exdate.getDate()+expiredays)
+      document.cookie=c_name+ "=" +escape(value)+
+      ((expiredays==null) ? "" : ";expires="+exdate.toGMTString())
+    }
+    //取回cookie
+    const getCookie = (c_name)=>{
+    if (document.cookie.length>0)
+      {
+      let c_start=document.cookie.indexOf(c_name + "=")
+      if (c_start!=-1)
+        { 
+        c_start=c_start + c_name.length+1 
+        let c_end=document.cookie.indexOf(";",c_start)
+        if (c_end==-1) c_end=document.cookie.length
+        return unescape(document.cookie.substring(c_start,c_end))
+        } 
+      }
+      return ""
+    }
+    if(getCookie('employeeFormCookie')){state.employeeForm = JSON.parse(getCookie('employeeFormCookie'));}
+    if(getCookie('familyFormCookie')){state.familyForm = JSON.parse(getCookie('familyFormCookie'));}
+    if(getCookie('educationFormCookie')){state.educationForm = JSON.parse(getCookie('educationFormCookie'));}
+    if(getCookie('workFormCookie')){state.workForm = JSON.parse(getCookie('workFormCookie'));}
+    if(getCookie('goAbroadFormCookie')){state.goAbroadForm = JSON.parse(getCookie('goAbroadFormCookie'));}
+    if(getCookie('professionalTitleFormCookie')){state.professionalTitleForm = JSON.parse(getCookie('professionalTitleFormCookie'));}
+    if(getCookie('trainFormCookie')){state.trainForm = JSON.parse(getCookie('trainFormCookie'));}
+    if(getCookie('healthFormCookie')){state.healthForm = JSON.parse(getCookie('healthFormCookie'));}
+    if(getCookie('otherFormCookie')){state.otherForm = JSON.parse(getCookie('otherFormCookie'));}
     const formatDate = (date) => `${date.getFullYear()}-${(date.getMonth() + 1)<10?'0'+(date.getMonth() + 1):(date.getMonth() + 1)}-${date.getDate()<10?'0'+date.getDate():date.getDate()}`;
     const onConfirm = (value) => {
       state.show = false;
@@ -1228,6 +1281,7 @@ export default {
       let month = birthDate.substr(4,2);
       let day = birthDate.substr(6,2);
       state.employeeForm.birthDate = year+'-'+month+'-'+day;
+      if(e.target.value.substr(16,1)%2==0){state.employeeForm.gender = '1'}else{state.employeeForm.gender = '0'}
     }
     const relativeEmploymentChange = (val)=>{
       if(val == 1){
@@ -1244,6 +1298,7 @@ export default {
       if(state.educationForm.educationalExperience.length<1){Toast.fail('请填写教育经历！'); return;}
       if(state.workForm.workExperience.length<1){Toast.fail('请填写工作经历！'); return;}
       if(state.otherForm.restrictTime == 1){Toast.fail('您仍处于竞业协议期内，无法提交入职信息，请先和对应的招聘专员联系'); return}
+      state.showOverlay = true;
       const { code } = await staffInfoSave({
         ...state.employeeForm,
         ...state.familyForm,
@@ -1256,10 +1311,10 @@ export default {
         ...state.otherForm
       })
       // const {code} = await staffInfoSave(
-      //  {"realName":"张三","gender":"0","mobile":"15011111113","nation":"汉族","politicalOutlook":"中共党员",
+      //  {"realName":"张三","gender":"0","mobile":"15011111115","speciality":'特长',"hobby":'篮球',"nation":"汉族","politicalOutlook":"中共党员",
       //   "maritalStatus":"已婚","marriedDate":"2022-09-02","nativePlace":"河南省/郑州市",
       //   "residenceType":"非农业户口","residenceAddr":"广东省/广州市/荔湾区","childrenNumber":"2",
-      //   "email":"15011111111@qq.com","workTime":"2022-01-12","idCard":"430426202110079999",
+      //   "email":"15011111111@qq.com","workTime":"2022-01-12","idCard":"430426202110078888",
       //   "idCardAddr":"广东省东莞","birthDate":"2021-10-07","issuingAuthority":"东莞",
       //   "idCardStartDate":"2021-07-01","idCardExpireDate":"2022-08-17","emergency":"李大",
       //   "emergencyMobile":"15122222222","emergencyRelation":"母子","relativePerson":"杨大",
@@ -1274,7 +1329,7 @@ export default {
       //   "showPhysicalCondition":false,"health":"健康","oneYearSurgicalHistory":"0","majorDiseasesHistory":"0","infectiousDiseases":"0","secrecyAgreement":"0","restrictTime":"0","illegalRecord":"0","majorPenalize":"0"
       //   }
       // )
-      
+      state.showOverlay = false;
       if(code == '0'){
         Toast.success('保存成功')
       }
@@ -1302,6 +1357,18 @@ export default {
         }
       });
     };
+    const dataCache = ()=>{
+      //设置cookie，有效期为365天
+      setCookie('employeeFormCookie',JSON.stringify({...state.employeeForm}),365);
+      setCookie('familyFormCookie',JSON.stringify({...state.familyForm}),365);
+      setCookie('educationFormCookie',JSON.stringify({...state.educationForm}),365);
+      setCookie('workFormCookie',JSON.stringify({...state.workForm}),365);
+      setCookie('goAbroadFormCookie',JSON.stringify({...state.goAbroadForm}),365);
+      setCookie('professionalTitleFormCookie',JSON.stringify({...state.professionalTitleForm}),365);
+      setCookie('trainFormCookie',JSON.stringify({...state.trainForm}),365);
+      setCookie('healthFormCookie',JSON.stringify({...state.healthForm}),365);
+      setCookie('otherFormCookie',JSON.stringify({...state.otherForm}),365);
+    }
     onMounted(async () => {
       // const token = getLocal('token')
       // if (token) {
@@ -1313,6 +1380,8 @@ export default {
       //   message: '加载中...',
       //   forbidClick: true
       // });
+      // window.addEventListener("beforeunload", (e) => dataCache(e));
+      // window.addEventListener("unload", (e) => dataCache(e));
       const { data } = await getRecruiters()
       state.recruiterList = data
       // state.loading = false
@@ -1320,8 +1389,11 @@ export default {
 
       state.nationList = state.nationList2
       state.educationCertificateList = state.educationCertificateList2
-    })
-
+      
+    });
+    watch(()=>state,(newValue,oldValue)=>{
+      dataCache(newValue,oldValue);
+    },{ deep: true,immediate:true })
     nextTick(() => {
       window.addEventListener('scroll', () => {
         let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
@@ -1348,6 +1420,9 @@ export default {
       state.nationList = arr;
     }
     return {
+      dataCache,
+      setCookie,
+      getCookie,
       ...toRefs(state),
       goToDetail,
       tips,
@@ -1452,5 +1527,19 @@ export default {
   .redColor{
     color:red;
     margin-right:2px
+  }
+
+  .wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .block {
+    width: 120px;
+    height: 120px;
+    background-color: #fff;
   }
 </style>
