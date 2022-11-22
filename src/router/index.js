@@ -31,6 +31,14 @@ const router = createRouter({
         index: 3
       }
     },
+    {
+      path: '/success',
+      name: 'success',
+      component: () => import(/* webpackChunkName: "home" */ '@/views/Success.vue'),
+      meta: {
+        index: 4
+      }
+    },
     
     {
       path: '/about',

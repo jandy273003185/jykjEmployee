@@ -32,7 +32,7 @@
           </van-field>
           <van-field required label="民族" v-model="employeeForm.nation" is-link readonly @click="showNation = true" placeholder="民族"  :rules="[{ required: true, message: '请填写民族' }]"/>
           <van-popup v-model:show="showNation" round position="bottom">
-            <van-search placeholder="请输入民族" v-model="nationInput" @input="nationSearch(nationInput)" @clear="nationSearch(nationInput)"/>
+            <van-search placeholder="请输入民族" v-model="nationInput" @input="nationSearch(nationInput)" @clear="nationSearch(nationInput)" :rules="[{ required: true, message: '请填写民族' }]"/>
             <van-picker
               :columns="nationList"
               @cancel="showNation = false"
@@ -41,7 +41,7 @@
           </van-popup>
           <van-field required  name="uploader" label="个人照片">
             <template #input  style="width:100%">
-              <van-uploader v-model="fileList" @delete="deleteHeadUrl" :after-read="afterRead"  multiple  :max-count="1"/>
+              <van-uploader v-model="fileList" @delete="deleteHeadUrl" :after-read="afterRead"  multiple  :max-count="1" :rules="[{ required: true, message: '请上传近期的2寸人脸正面照片' }]"/>
               <span style="color:red;">(请上传近期的2寸人脸正面照片)</span>
             </template>
           </van-field>
@@ -89,7 +89,7 @@
           <van-popup v-model:show="showArea2" position="bottom">
             <van-area :area-list="areaList" @confirm="areaConfirm2" @cancel="showArea2 = false"/>
           </van-popup>
-          <van-field required v-model="employeeForm.idCardAddr" />
+          <van-field required v-model="employeeForm.idCardAddr" :rules="[{ required: true, message: '请填写身份证详细地址' }]"/>
           <van-field required v-model="employeeForm.issuingAuthority" name="身份证签发机关" label="身份证签发机关" label-width="98" placeholder="身份证签发机关" :rules="[{ required: true, message: '请填写身份证签发机关' }]"/>
           <van-field required v-model="employeeForm.idCardStartDate" name="身份证有效开始时间" label-width="126" label="身份证有效开始时间" placeholder="身份证有效开始时间" :rules="[{ required: true, message: '请填写身份证有效开始时间' }]" @click="show = true"/>
           <van-popup v-model:show="show" position="bottom">
@@ -113,12 +113,12 @@
           <van-popup v-model:show="showArea3" position="bottom">
             <van-area :area-list="areaList" @confirm="areaConfirm3" @cancel="showArea3 = false"/>
           </van-popup>
-        <van-field required v-model="employeeForm.address"/>  
+        <van-field required v-model="employeeForm.address" :rules="[{ required: true, message: '请填写现居住详细地址' }]"/> 
         <van-field required v-model="_postAddress" is-link readonly name="area" label="邮寄地址" placeholder="邮寄地址" :rules="[{ required: true, message: '请填写邮寄地址' }]" @click="showArea4 = true"/>
           <van-popup v-model:show="showArea4" position="bottom">
             <van-area :area-list="areaList" @confirm="areaConfirm4" @cancel="showArea4 = false"/>
           </van-popup>
-        <van-field required v-model="employeeForm.postAddress" style="margin-bottom:8px"/>  
+        <van-field required v-model="employeeForm.postAddress" style="margin-bottom:8px" :rules="[{ required: true, message: '请填写邮寄详细地址' }]"/>  
         <div class="content-title"><span class="redColor">*</span>家庭关系</div>
         <div v-if="familyVisible" :model="familyForm" ref="familyRef">
           <template v-for="(item, index) in familyForm.familyRelations" :key="index">
@@ -278,7 +278,7 @@
               </template>
             </van-field>
         </div>
-        <van-field required label="入职方式" v-model="employeeForm.inductionMode" is-link readonly @click="employeeForm.showInductionMode = true" placeholder="入职方式" />
+        <van-field required label="入职方式" v-model="employeeForm.inductionMode" is-link readonly @click="employeeForm.showInductionMode = true" placeholder="入职方式"  :rules="[{ required: true, message: '请填写入职方式' }]"/>
         <van-popup required v-model:show="employeeForm.showInductionMode" round position="bottom">
           <van-picker
             :columns="inductionModeList"
@@ -776,6 +776,9 @@ export default {
     if(getCookie('workForm2')){state.workForm = JSON.parse(getCookie('workForm2'));}
     if(getCookie('healthForm2')){state.healthForm = JSON.parse(getCookie('healthForm2'));}
     if(getCookie('otherForm2')){state.otherForm = JSON.parse(getCookie('otherForm2'));}
+    state.employeeForm.idCardAddr = '';
+    state.employeeForm.address = '';
+    state.employeeForm.postAddress = '';
     const formatDate = (date) => `${date.getFullYear()}-${(date.getMonth() + 1)<10?'0'+(date.getMonth() + 1):(date.getMonth() + 1)}-${date.getDate()<10?'0'+date.getDate():date.getDate()}`;
     const onConfirm = (value) => {
       state.show = false;
@@ -1002,6 +1005,7 @@ export default {
       state.showOverlay = false;
       if(code == '0'){
         Toast.success('保存成功')
+        router.push({ path: '/Success' })
       }
       // console.log('submit', values);
     };
